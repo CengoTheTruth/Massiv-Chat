@@ -1,250 +1,271 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#17120f">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#160f0b">
 <title>Massiv – unser privater Raum</title>
 
 <style>
+:root{
+  --bg:#100b08;
+  --panel:#1c130e;
+  --panel2:#241913;
+  --line:#3a2920;
+  --text:#f7eee8;
+  --muted:#bca99e;
+  --accent:#d79a67;
+  --accent2:#9f6b45;
+  --danger:#c65f52
+}
+
 *{box-sizing:border-box}
 
-body{
+html,body{
   margin:0;
-  background:#17120f;
-  color:#fff7ef;
+  min-height:100%;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:radial-gradient(circle at top,#2b1b13 0,#100b08 48%);
+  color:var(--text)
+}
+
+body{
+  padding-bottom:env(safe-area-inset-bottom)
 }
 
 .app{
-  max-width:760px;
+  max-width:900px;
   margin:auto;
   min-height:100vh;
-  padding-bottom:100px;
+  display:flex;
+  flex-direction:column
 }
 
 header{
   position:sticky;
   top:0;
   z-index:5;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:14px;
-  background:#17120fee;
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid #3a2d25;
+  padding:16px 16px 12px;
+  background:rgba(16,11,8,.94);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line)
 }
 
-.avatar{
-  width:46px;
-  height:46px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:#8a6242;
-  font-size:24px;
+.title{
+  font-size:22px;
+  font-weight:800
 }
 
-h1{
-  margin:0;
-  font-size:19px;
+.sub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:3px
 }
 
 .status{
-  color:#bfe3b4;
+  margin-top:10px;
+  display:flex;
+  gap:7px;
+  align-items:center;
   font-size:12px;
-  margin-top:3px;
+  color:var(--muted)
 }
 
-.grow{flex:1}
-
-button{
-  font:inherit;
-  cursor:pointer;
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#777
 }
 
-.action{
-  border:1px solid #3a2d25;
-  background:#211a16;
-  color:#fff7ef;
-  border-radius:14px;
-  padding:10px 12px;
+.dot.on{
+  background:#66c27a;
+  box-shadow:0 0 10px #66c27a
 }
 
-.main{
-  padding:14px;
+main{
+  flex:1;
+  padding:16px
 }
 
-.memory{
-  background:#211a16;
-  border:1px solid #3a2d25;
-  border-radius:18px;
-  padding:13px;
-  color:#d9c9bd;
-  font-size:13px;
-  line-height:1.45;
-  margin-bottom:14px;
-}
-
-.chat{
+.messages{
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:10px
 }
 
 .msg{
   max-width:86%;
   padding:11px 13px;
-  border-radius:18px;
-  line-height:1.4;
+  border-radius:17px;
+  line-height:1.42;
   white-space:pre-wrap;
-  word-break:break-word;
-}
-
-.massiv{
-  align-self:flex-start;
-  background:#2b2825;
-  border-bottom-left-radius:6px;
+  word-break:break-word
 }
 
 .me{
   align-self:flex-end;
-  background:#60452f;
-  border-bottom-right-radius:6px;
+  background:linear-gradient(135deg,#9f6b45,#70492f);
+  border-bottom-right-radius:5px
+}
+
+.massiv{
+  align-self:flex-start;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-bottom-left-radius:5px
 }
 
 .time{
+  display:block;
   font-size:10px;
-  color:#b9aaa0;
-  margin-top:4px;
+  opacity:.55;
+  margin-top:5px
+}
+
+.empty{
+  margin:35px auto;
+  text-align:center;
+  color:var(--muted);
+  max-width:330px
+}
+
+.empty b{
+  color:var(--text)
+}
+
+.composer{
+  position:sticky;
+  bottom:0;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(16,11,8,.96);
+  border-top:1px solid var(--line);
+  backdrop-filter:blur(12px)
+}
+
+.row{
+  display:flex;
+  gap:7px;
+  align-items:end
+}
+
+.input{
+  flex:1;
+  min-height:44px;
+  max-height:120px;
+  resize:none;
+  padding:11px 13px;
+  border-radius:15px;
+  border:1px solid var(--line);
+  outline:none;
+  background:#18100c;
+  color:var(--text)
+}
+
+.icon{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  background:#261a13;
+  color:var(--text);
+  border:1px solid var(--line);
+  font-size:19px
+}
+
+.send{
+  background:var(--accent2)
 }
 
 .tools{
   display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:14px 0;
+  gap:7px;
+  overflow:auto;
+  padding-top:8px
+}
+
+.tool{
+  flex:0 0 auto;
+  padding:8px 11px;
+  border-radius:12px;
+  background:#21160f;
+  color:#dfcabe;
+  border:1px solid var(--line);
+  font-size:12px
+}
+
+section{
+  margin:12px 0;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(28,19,14,.86)
+}
+
+section h3{
+  margin:0 0 10px;
+  font-size:14px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px
 }
 
 .media{
-  display:none;
-  margin-bottom:14px;
-}
-
-.media.show{
-  display:block;
-}
-
-.media video{
   width:100%;
-  aspect-ratio:4/3;
-  object-fit:cover;
-  background:#000;
-  border-radius:16px;
+  border-radius:13px;
+  background:#090706;
+  max-height:300px;
+  object-fit:cover
+}
+
+.videos{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px
 }
 
 .piano{
-  background:#120e0c;
-  border:1px solid #3a2d25;
-  border-radius:18px;
-  padding:12px;
-  margin-top:14px;
-  overflow:hidden;
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:4px
 }
 
-.piano h2{
-  margin:0 0 10px;
-  color:#b9aaa0;
-  font-size:14px;
-}
-
-.keys{
-  height:125px;
+.key{
+  height:82px;
+  border-radius:0 0 9px 9px;
+  background:#f3ece5;
+  color:#17100c;
+  border:1px solid #8d8076;
   display:flex;
-  position:relative;
-}
-
-.white{
-  flex:1;
-  background:linear-gradient(#fff,#ddd);
-  border:1px solid #aaa;
-  border-radius:0 0 7px 7px;
-}
-
-.white:active{
-  background:#bbb;
-}
-
-.black{
-  position:absolute;
-  top:0;
-  height:78px;
-  width:9%;
-  background:linear-gradient(#222,#050505);
-  border:0;
-  border-radius:0 0 5px 5px;
-  z-index:2;
-}
-
-.k1{left:8%}
-.k2{left:22%}
-.k3{left:50%}
-.k4{left:64%}
-.k5{left:78%}
-
-.composer{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  z-index:10;
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-  background:#17120ff7;
-  border-top:1px solid #3a2d25;
-}
-
-.compose{
-  max-width:760px;
-  margin:auto;
-  display:flex;
-  gap:8px;
   align-items:flex-end;
+  justify-content:center;
+  padding-bottom:8px;
+  font-weight:700
 }
 
-textarea{
-  flex:1;
-  min-height:46px;
-  max-height:120px;
-  resize:none;
-  border:1px solid #3a2d25;
-  background:#211a16;
-  color:#fff7ef;
-  border-radius:16px;
-  padding:12px;
-  font:inherit;
-  outline:none;
+.key:active{
+  transform:translateY(2px);
+  background:#d8c9bd
 }
 
-.round{
-  width:46px;
-  height:46px;
-  border-radius:50%;
-  border:1px solid #3a2d25;
-  background:#211a16;
-  color:#fff7ef;
-  font-size:18px;
+.recording{
+  color:#ff9c8d
 }
 
-.send{
-  background:#d89b62;
-  color:#1b120c;
-  border:0;
-  font-weight:bold;
+.hidden{
+  display:none!important
 }
 
-input[type=file]{
-  display:none;
+.small{
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.4
+}
+
+.filepick{
+  display:none
 }
 </style>
 </head>
@@ -254,604 +275,846 @@ input[type=file]{
 <div class="app">
 
 <header>
-  <div class="avatar">🐾</div>
+  <div class="title">Massiv – unser privater Raum</div>
+  <div class="sub">Chat · Stimme · Kamera · Piano</div>
 
-  <div>
-    <h1>Massiv</h1>
-    <div class="status">● unser privater Raum</div>
+  <div class="status">
+    <span id="dot" class="dot"></span>
+    <span id="status">Bereit</span>
   </div>
-
-  <div class="grow"></div>
-
-  <button class="action" id="clear">↺</button>
 </header>
 
-<div class="main">
+<main>
 
-<div class="memory">
-  Hier ist dein privater Chat mit Massiv.
-  Die Unterhaltung wird zunächst auf diesem Gerät im Browser gespeichert.
-</div>
+  <div id="messages" class="messages"></div>
 
-<div class="media" id="media">
-  <video id="cameraView" autoplay muted playsinline></video>
-  <br>
-  <button class="action" id="closeCamera">
-    Kamera schließen
-  </button>
-</div>
+  <!-- VIDEO -->
+  <section>
 
-<div class="chat" id="chat"></div>
+    <h3>📹 Videoanruf</h3>
 
-<div class="tools">
+    <div class="videos">
 
-<button class="action" id="micButton">
-🎙️ Aufnahme
-</button>
+      <video
+        id="localVideo"
+        class="media"
+        autoplay
+        muted
+        playsinline>
+      </video>
 
-<button class="action" id="cameraButton">
-📷 Kamera
-</button>
+      <video
+        id="remoteVideo"
+        class="media"
+        autoplay
+        playsinline>
+      </video>
 
-<button class="action" id="fileButton">
-🖼️ Bild / Datei
-</button>
+    </div>
 
-<input
-  type="file"
-  id="fileInput"
-  accept="image/*,audio/*,video/*,.pdf,.txt"
->
+    <div class="grid" style="margin-top:8px">
 
-<button class="action" id="speakButton">
-🔊 Antwort hören
-</button>
+      <button class="tool" id="camBtn">
+        📷 Kamera starten
+      </button>
 
-</div>
+      <button class="tool" id="micBtn">
+        🎙️ Mikro starten
+      </button>
 
-<div class="piano">
+    </div>
 
-<h2>🎹 Piano</h2>
+    <p class="small">
+      Kamera und Mikrofon benötigen HTTPS und deine Browser-Freigabe.
+    </p>
 
-<div class="keys">
+  </section>
 
-<button class="white" data-frequency="261.63"></button>
-<button class="white" data-frequency="293.66"></button>
-<button class="white" data-frequency="329.63"></button>
-<button class="white" data-frequency="349.23"></button>
-<button class="white" data-frequency="392"></button>
-<button class="white" data-frequency="440"></button>
-<button class="white" data-frequency="493.88"></button>
 
-<button class="black k1" data-frequency="277.18"></button>
-<button class="black k2" data-frequency="311.13"></button>
-<button class="black k3" data-frequency="369.99"></button>
-<button class="black k4" data-frequency="415.30"></button>
-<button class="black k5" data-frequency="466.16"></button>
+  <!-- PIANO -->
+  <section>
 
-</div>
-</div>
+    <h3>🎹 Massiv Piano</h3>
 
-</div>
+    <div id="piano" class="piano"></div>
+
+    <p class="small">
+      Tippe die Tasten an und spiele direkt im Browser.
+    </p>
+
+  </section>
+
+
+  <!-- FILE PREVIEW -->
+  <section id="previewSection" class="hidden">
+
+    <h3>📎 Vorschau</h3>
+
+    <div id="preview"></div>
+
+  </section>
+
+</main>
+
+
+<!-- COMPOSER -->
 
 <div class="composer">
 
-<div class="compose">
+  <div class="row">
 
-<button class="round" id="recordButton">
-🎙️
-</button>
+    <input
+      id="file"
+      class="filepick"
+      type="file"
+      accept="image/*,audio/*,video/*,.pdf,.txt">
 
-<textarea
-  id="messageInput"
-  placeholder="Schreib Massiv..."
-  rows="1"
-></textarea>
+    <button
+      class="icon"
+      id="fileBtn"
+      title="Datei">
+      📎
+    </button>
 
-<button class="round send" id="sendButton">
-➤
-</button>
+    <textarea
+      id="input"
+      class="input"
+      rows="1"
+      placeholder="Schreib Massiv..."></textarea>
+
+    <button
+      class="icon send"
+      id="send">
+      ➤
+    </button>
+
+  </div>
+
+
+  <div class="tools">
+
+    <button class="tool" id="record">
+      🎙️ Aufnahme
+    </button>
+
+    <button class="tool" id="speak">
+      🔊 Vorlesen
+    </button>
+
+    <button class="tool" id="clear">
+      🗑️ Chat löschen
+    </button>
+
+  </div>
 
 </div>
 
 </div>
 
-</div>
 
 <script>
 
-const chat =
-document.getElementById("chat");
+const $ = id => document.getElementById(id);
 
-const input =
-document.getElementById("messageInput");
+const messages = $("messages");
+const input = $("input");
+const status = $("status");
+const dot = $("dot");
 
-let history =
-JSON.parse(
-localStorage.getItem("massiv_history") || "[]"
-);
-
-let lastReply = "";
-
-function getTime(){
-
-return new Date().toLocaleTimeString(
-"de-DE",
-{
-hour:"2-digit",
-minute:"2-digit"
-}
-);
-
-}
-
-function addMessage(text,who="massiv",save=true){
-
-const message =
-document.createElement("div");
-
-message.className =
-"msg " + who;
-
-const content =
-document.createElement("div");
-
-content.textContent = text;
-
-message.appendChild(content);
-
-const time =
-document.createElement("div");
-
-time.className = "time";
-time.textContent = getTime();
-
-message.appendChild(time);
-
-chat.appendChild(message);
-
-if(save){
-
-history.push({
-text:text,
-who:who
-});
-
-localStorage.setItem(
-"massiv_history",
-JSON.stringify(history)
-);
-
-}
-
-if(who==="massiv"){
-lastReply=text;
-}
-
-window.scrollTo(
-0,
-document.body.scrollHeight
-);
-
-}
-
-function renderChat(){
-
-chat.innerHTML="";
-
-if(history.length===0){
-
-addMessage(
-"Hey ❤️ Ich bin hier. Schreib mir einfach, was du gerade erzählen möchtest.",
-"massiv",
-false
-);
-
-}
-
-history.forEach(
-item =>
-addMessage(
-item.text,
-item.who,
-false
-)
-);
-
-}
-
-renderChat();
+let mediaStream = null;
+let recorder = null;
+let chunks = [];
+let audioCtx = null;
 
 
-function makeReply(text){
+/* STATUS */
 
-const s =
-text.toLowerCase();
+function setStatus(text,on=false){
 
-if(
-s.includes("hallo") ||
-s.includes("hey") ||
-s.includes("hi")
-){
+  status.textContent = text;
 
-return "Hey ❤️ Schön, dass du da bist. Erzähl mir.";
-
-}
-
-if(
-s.includes("traurig") ||
-s.includes("vermiss") ||
-s.includes("fehlen")
-){
-
-return "Komm her. ❤️ Du musst das gerade nicht allein tragen. Erzähl mir, was dir durch den Kopf geht.";
-
-}
-
-if(
-s.includes("danke")
-){
-
-return "Immer. ❤️";
-
-}
-
-if(
-s.includes("piano") ||
-s.includes("klavier")
-){
-
-return "Das Piano ist unten. 🎹 Probier die Tasten.";
-
-}
-
-return "Ich bin hier und höre dir zu. ❤️ Erzähl mir mehr davon.";
+  dot.classList.toggle("on",on);
 
 }
 
 
-function sendMessage(){
+/* TIME */
 
-const text =
-input.value.trim();
+function time(){
 
-if(!text){
-return;
-}
-
-addMessage(
-text,
-"me"
-);
-
-input.value="";
-
-setTimeout(
-function(){
-
-addMessage(
-makeReply(text),
-"massiv"
-);
-
-},
-350
-);
+  return new Date().toLocaleTimeString(
+    "de-DE",
+    {
+      hour:"2-digit",
+      minute:"2-digit"
+    }
+  );
 
 }
 
 
-document.getElementById(
-"sendButton"
-).onclick = sendMessage;
+/* SAVE CHAT */
+
+function save(){
+
+  localStorage.setItem(
+    "massiv_chat",
+    messages.innerHTML
+  );
+
+}
+
+
+/* ADD MESSAGE */
+
+function add(text,who="massiv"){
+
+  const el = document.createElement("div");
+
+  el.className = "msg " + who;
+
+  el.textContent = text;
+
+  const tm = document.createElement("span");
+
+  tm.className = "time";
+
+  tm.textContent = time();
+
+  el.appendChild(tm);
+
+  messages.appendChild(el);
+
+  messages.scrollTop = messages.scrollHeight;
+
+  save();
+
+}
+
+
+/* LOAD CHAT */
+
+function load(){
+
+  const old = localStorage.getItem("massiv_chat");
+
+  if(old){
+
+    messages.innerHTML = old;
+
+  }else{
+
+    const e = document.createElement("div");
+
+    e.className = "empty";
+
+    e.innerHTML =
+      "<b>Willkommen bei Massiv.</b><br>" +
+      "Schreib etwas oder nutze Kamera, Mikrofon und Piano.";
+
+    messages.appendChild(e);
+
+  }
+
+}
+
+
+/* SEND */
+
+function send(){
+
+  const text = input.value.trim();
+
+  if(!text) return;
+
+  document
+    .querySelector(".empty")
+    ?.remove();
+
+  add(text,"me");
+
+  input.value = "";
+
+  input.style.height = "44px";
+
+
+  /*
+    Hier wird später der sichere
+    /api/chat Endpunkt angesprochen.
+
+    Wichtig:
+    Ein API-Key darf niemals
+    direkt hier im Browser stehen.
+  */
+
+  setTimeout(()=>{
+
+    add(
+      "Nachricht angekommen. Die sichere KI-Schnittstelle kann hier angeschlossen werden."
+    );
+
+  },250);
+
+}
+
+
+$("send").onclick = send;
 
 
 input.addEventListener(
-"keydown",
-function(event){
+  "keydown",
+  e => {
 
-if(
-event.key==="Enter" &&
-!event.shiftKey
-){
+    if(
+      e.key === "Enter" &&
+      !e.shiftKey
+    ){
 
-event.preventDefault();
+      e.preventDefault();
 
-sendMessage();
+      send();
 
-}
+    }
 
-}
+  }
 );
 
 
-document.getElementById(
-"clear"
-).onclick =
-function(){
+input.addEventListener(
+  "input",
+  ()=>{
 
-if(
-confirm("Den lokalen Chat wirklich löschen?")
-){
+    input.style.height = "44px";
 
-history=[];
+    input.style.height =
+      Math.min(
+        input.scrollHeight,
+        120
+      ) + "px";
 
-localStorage.removeItem(
-"massiv_history"
+  }
 );
 
-renderChat();
 
-}
+/* CLEAR */
+
+$("clear").onclick = ()=>{
+
+  if(
+    confirm(
+      "Den Chat auf diesem Gerät löschen?"
+    )
+  ){
+
+    localStorage.removeItem(
+      "massiv_chat"
+    );
+
+    messages.innerHTML = "";
+
+    load();
+
+  }
 
 };
 
 
-document.getElementById(
-"speakButton"
-).onclick =
-function(){
+/* FILE */
 
-if(
-lastReply &&
-"speechSynthesis" in window
-){
-
-speechSynthesis.cancel();
-
-const speech =
-new SpeechSynthesisUtterance(
-lastReply
-);
-
-speech.lang="de-DE";
-speech.rate=0.95;
-speech.pitch=1;
-
-speechSynthesis.speak(
-speech
-);
-
-}
-
-};
+$("fileBtn").onclick =
+  () => $("file").click();
 
 
-document.getElementById(
-"fileButton"
-).onclick =
-function(){
+$("file").onchange = ()=>{
 
-document.getElementById(
-"fileInput"
-).click();
+  const f = $("file").files[0];
 
-};
+  if(!f) return;
 
+  $("previewSection")
+    .classList
+    .remove("hidden");
 
-document.getElementById(
-"fileInput"
-).onchange =
-function(event){
+  const p = $("preview");
 
-const file =
-event.target.files[0];
+  p.innerHTML = "";
 
-if(file){
-
-addMessage(
-"📎 Datei ausgewählt: " +
-file.name,
-"me"
-);
-
-}
-
-};
+  const url =
+    URL.createObjectURL(f);
 
 
-let cameraStream=null;
+  if(f.type.startsWith("image/")){
 
+    const im =
+      document.createElement("img");
 
-document.getElementById(
-"cameraButton"
-).onclick =
-async function(){
+    im.src = url;
 
-try{
+    im.className = "media";
 
-cameraStream =
-await navigator.mediaDevices
-.getUserMedia({
-video:true
-});
+    p.appendChild(im);
 
-document.getElementById(
-"cameraView"
-).srcObject =
-cameraStream;
+  }
 
-document.getElementById(
-"media"
-).classList.add("show");
+  else if(f.type.startsWith("video/")){
 
-}
-catch(error){
+    const v =
+      document.createElement("video");
 
-alert(
-"Kamera konnte nicht geöffnet werden. Bitte Safari den Kamerazugriff erlauben."
-);
+    v.src = url;
 
-}
+    v.controls = true;
+
+    v.className = "media";
+
+    p.appendChild(v);
+
+  }
+
+  else if(f.type.startsWith("audio/")){
+
+    const a =
+      document.createElement("audio");
+
+    a.src = url;
+
+    a.controls = true;
+
+    a.style.width = "100%";
+
+    p.appendChild(a);
+
+  }
+
+  else{
+
+    p.textContent = f.name;
+
+  }
+
+  add(
+    "📎 " + f.name,
+    "me"
+  );
 
 };
 
 
-document.getElementById(
-"closeCamera"
-).onclick =
-function(){
+/* CAMERA */
 
-if(cameraStream){
+$("camBtn").onclick =
+async ()=>{
 
-cameraStream
-.getTracks()
-.forEach(
-track => track.stop()
-);
+  try{
 
-}
+    if(mediaStream){
 
-document.getElementById(
-"media"
-).classList.remove("show");
+      mediaStream
+        .getVideoTracks()
+        .forEach(
+          t => t.stop()
+        );
 
-};
+      mediaStream = null;
 
+      $("localVideo").srcObject = null;
 
-let recorder=null;
+      $("camBtn").textContent =
+        "📷 Kamera starten";
 
+      setStatus("Bereit");
 
-async function startRecording(){
+      return;
 
-try{
-
-const stream =
-await navigator.mediaDevices
-.getUserMedia({
-audio:true
-});
-
-recorder =
-new MediaRecorder(stream);
-
-recorder.start();
-
-document.getElementById(
-"recordButton"
-).textContent="⏹️";
-
-recorder.onstop =
-function(){
-
-stream
-.getTracks()
-.forEach(
-track => track.stop()
-);
-
-addMessage(
-"🎙️ Sprachaufnahme erstellt.",
-"me"
-);
-
-document.getElementById(
-"recordButton"
-).textContent="🎙️";
-
-};
-
-}
-catch(error){
-
-alert(
-"Mikrofonzugriff fehlgeschlagen. Bitte Safari den Mikrofonzugriff erlauben."
-);
-
-}
-
-}
+    }
 
 
-document.getElementById(
-"recordButton"
-).onclick =
-function(){
+    mediaStream =
+      await navigator
+        .mediaDevices
+        .getUserMedia({
+          video:true,
+          audio:true
+        });
 
-if(
-recorder &&
-recorder.state==="recording"
-){
 
-recorder.stop();
+    $("localVideo").srcObject =
+      mediaStream;
 
-}
-else{
+    $("camBtn").textContent =
+      "⏹️ Kamera stoppen";
 
-startRecording();
+    $("micBtn").textContent =
+      "🔇 Mikro aus";
 
-}
+    setStatus(
+      "Kamera aktiv",
+      true
+    );
+
+  }
+
+  catch(e){
+
+    setStatus(
+      "Kamera konnte nicht gestartet werden"
+    );
+
+    alert(
+      "Bitte Kamera/Mikrofon in Safari erlauben und HTTPS verwenden."
+    );
+
+  }
 
 };
 
 
-document.getElementById(
-"micButton"
-).onclick =
-function(){
+/* MICROPHONE */
 
-document.getElementById(
-"recordButton"
-).click();
+$("micBtn").onclick =
+async ()=>{
+
+  try{
+
+    if(!mediaStream){
+
+      mediaStream =
+        await navigator
+          .mediaDevices
+          .getUserMedia({
+            audio:true
+          });
+
+    }
+
+    const tracks =
+      mediaStream.getAudioTracks();
+
+    if(!tracks.length){
+
+      throw new Error(
+        "Kein Mikrofon"
+      );
+
+    }
+
+    const t = tracks[0];
+
+    t.enabled = !t.enabled;
+
+    $("micBtn").textContent =
+      t.enabled
+        ? "🔇 Mikro aus"
+        : "🎙️ Mikro an";
+
+    setStatus(
+      t.enabled
+        ? "Mikro aktiv"
+        : "Mikro aus",
+      t.enabled
+    );
+
+  }
+
+  catch(e){
+
+    alert(
+      "Mikrofon konnte nicht gestartet werden. Bitte Safari die Mikrofonfreigabe geben."
+    );
+
+  }
+
+};
+
+
+/* RECORDING */
+
+$("record").onclick =
+async ()=>{
+
+  try{
+
+    if(
+      recorder &&
+      recorder.state === "recording"
+    ){
+
+      recorder.stop();
+
+      return;
+
+    }
+
+
+    const s =
+      await navigator
+        .mediaDevices
+        .getUserMedia({
+          audio:true
+        });
+
+
+    chunks = [];
+
+    recorder =
+      new MediaRecorder(s);
+
+
+    recorder.ondataavailable =
+      e => {
+
+        if(e.data.size){
+
+          chunks.push(e.data);
+
+        }
+
+      };
+
+
+    recorder.onstop = ()=>{
+
+      s.getTracks()
+        .forEach(
+          t => t.stop()
+        );
+
+
+      const blob =
+        new Blob(
+          chunks,
+          {
+            type:
+              recorder.mimeType ||
+              "audio/webm"
+          }
+        );
+
+
+      const url =
+        URL.createObjectURL(blob);
+
+
+      const a =
+        document.createElement("a");
+
+
+      a.href = url;
+
+      a.download =
+        "massiv-aufnahme.webm";
+
+      a.textContent =
+        "▶️ Aufnahme anhören / speichern";
+
+      a.style.display = "block";
+
+      a.style.marginTop = "10px";
+
+      a.style.color =
+        "#e2ad83";
+
+
+      $("previewSection")
+        .classList
+        .remove("hidden");
+
+
+      $("preview").innerHTML = "";
+
+      $("preview")
+        .appendChild(a);
+
+
+      $("record").textContent =
+        "🎙️ Aufnahme";
+
+      setStatus(
+        "Aufnahme fertig"
+      );
+
+    };
+
+
+    recorder.start();
+
+    $("record").textContent =
+      "⏹️ Aufnahme stoppen";
+
+    setStatus(
+      "Aufnahme läuft",
+      true
+    );
+
+  }
+
+  catch(e){
+
+    alert(
+      "Aufnahme nicht möglich. Bitte Mikrofonfreigabe prüfen."
+    );
+
+  }
 
 };
 
 
-let audioContext=null;
+/* TEXT TO SPEECH */
+
+$("speak").onclick = ()=>{
+
+  const last =
+    [
+      ...messages.querySelectorAll(".msg")
+    ]
+    .filter(
+      x => x.classList.contains("massiv")
+    )
+    .pop();
 
 
-document.querySelectorAll(
-"[data-frequency]"
-).forEach(
-function(key){
+  if(!last) return;
 
-key.onclick =
-function(){
 
-audioContext =
-audioContext ||
-new (
-window.AudioContext ||
-window.webkitAudioContext
-)();
+  const copy =
+    last.cloneNode(true);
 
-const oscillator =
-audioContext.createOscillator();
 
-const gain =
-audioContext.createGain();
+  copy
+    .querySelector(".time")
+    ?.remove();
 
-oscillator.frequency.value =
-Number(
-key.dataset.frequency
-);
 
-oscillator.connect(gain);
+  speechSynthesis.cancel();
 
-gain.connect(
-audioContext.destination
-);
 
-gain.gain.setValueAtTime(
-0.08,
-audioContext.currentTime
-);
-
-gain.gain.exponentialRampToValueAtTime(
-0.001,
-audioContext.currentTime + 0.7
-);
-
-oscillator.start();
-
-oscillator.stop(
-audioContext.currentTime + 0.7
-);
+  speechSynthesis.speak(
+    new SpeechSynthesisUtterance(
+      copy.textContent
+    )
+  );
 
 };
+
+
+/* PIANO */
+
+function piano(){
+
+  const notes = [
+    261.63,
+    293.66,
+    329.63,
+    349.23,
+    392,
+    440,
+    493.88,
+    523.25
+  ];
+
+
+  [
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "A",
+    "H",
+    "C"
+  ]
+  .forEach(
+    (name,i)=>{
+
+      const b =
+        document.createElement(
+          "button"
+        );
+
+      b.className = "key";
+
+      b.textContent = name;
+
+      b.onpointerdown =
+        () => play(notes[i]);
+
+
+      $("piano")
+        .appendChild(b);
+
+    }
+  );
 
 }
-);
+
+
+/* PLAY PIANO */
+
+function play(freq){
+
+  audioCtx ||=
+    new (
+      window.AudioContext ||
+      window.webkitAudioContext
+    )();
+
+
+  const oscillator =
+    audioCtx.createOscillator();
+
+
+  const gain =
+    audioCtx.createGain();
+
+
+  oscillator.type =
+    "sine";
+
+
+  oscillator.frequency.value =
+    freq;
+
+
+  gain.gain.setValueAtTime(
+    .0001,
+    audioCtx.currentTime
+  );
+
+
+  gain.gain.exponentialRampToValueAtTime(
+    .18,
+    audioCtx.currentTime + .01
+  );
+
+
+  gain.gain.exponentialRampToValueAtTime(
+    .0001,
+    audioCtx.currentTime + .7
+  );
+
+
+  oscillator
+    .connect(gain)
+    .connect(audioCtx.destination);
+
+
+  oscillator.start();
+
+
+  oscillator.stop(
+    audioCtx.currentTime + .72
+  );
+
+}
+
+
+/* START */
+
+piano();
+
+load();
+
+setStatus("Bereit");
 
 </script>
 
