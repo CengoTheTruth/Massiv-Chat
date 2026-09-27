@@ -521,40 +521,35 @@ function load(){
 
 /* SEND */
 
-function send(){
-
+async function send(){
   const text = input.value.trim();
-
   if(!text) return;
-
-  document
-    .querySelector(".empty")
-    ?.remove();
-
+  document.querySelector(".empty")?.remove();
   add(text,"me");
-
-  input.value = "";
-
-  input.style.height = "44px";
-
-
-  /*
-    Hier wird später der sichere
-    /api/chat Endpunkt angesprochen.
-
-    Wichtig:
-    Ein API-Key darf niemals
-    direkt hier im Browser stehen.
-  */
-
-  setTimeout(()=>{
-
-    add(
-      "Nachricht angekommen. Die sichere KI-Schnittstelle kann hier angeschlossen werden."
-    );
-
-  },250);
-
+  input.value="";
+  input.style.height="44px";
+  setStatus("Massiv denkt …",true);
+  const waiting=add("…","massiv");
+  const history=[...messages.querySelectorAll(".msg")].map(el=>({
+    role:el.classList.contains("me")?"user":"assistant",
+    content:(el.childNodes[0]?.textContent||"").slice(0,12000)
+  })).filter(x=>x.content);
+  try{
+    const response=await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({messages:history})
+    });
+    const data=await response.json();
+    waiting.remove();
+    if(!response.ok) throw new Error(data.error||"KI-Schnittstelle nicht erreichbar.");
+    add(data.text||"Ich habe gerade keine Antwort erhalten.","massiv");
+    setStatus("KI verbunden",true);
+  }catch(e){
+    waiting.remove();
+    add("⚠️ "+e.message,"massiv");
+    setStatus("KI nicht verbunden");
+  }
 }
 
 
