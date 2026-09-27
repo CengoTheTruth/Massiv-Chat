@@ -313,11 +313,11 @@ section h3{
 
     <div class="videos">
       <div class="video-stage">
-        <img id="massivAvatar" class="massiv-video" src="assets/massiv-avatar.jpg" alt="Massiv">
+        <img id="massivAvatar" class="massiv-video" src="/assets/massiv-avatar.jpg?v=3" alt="Massiv">
         <div id="massivState" class="massiv-state">Bereit 🐱</div>
         <div id="massivPlaceholder" class="massiv-placeholder">
           <div class="massiv-badge">
-            <img class="avatar" src="assets/massiv-avatar.jpg" alt="">
+            <img class="avatar" src="/assets/massiv-avatar.jpg?v=3" alt="">
             <div><div class="massiv-name">Massiv 🐱</div><div class="massiv-live">Bereit für deinen Videochat</div></div>
           </div>
         </div>
@@ -435,6 +435,13 @@ section h3{
 
 
 <script>
+
+/* Ensure Massiv's portrait is visible even when a cached deployment is still settling. */
+document.addEventListener("DOMContentLoaded",()=>{
+  document.querySelectorAll('img[src*="massiv-avatar.jpg"]').forEach(img=>{
+    img.onerror=()=>{ img.style.display="none"; };
+  });
+});
 
 const $ = id => document.getElementById(id);
 
