@@ -332,6 +332,7 @@ section h3{
     <div class="grid" style="margin-top:8px">
       <button class="tool" id="callCreate">📞 Raum erstellen</button>
       <button class="tool" id="callJoin">🔗 Raum beitreten</button>
+  <button class="tool" id="callHangup">☎️ Auflegen</button>
     </div>
 
     <div id="callInfo" class="small" style="margin-top:8px"></div>
@@ -787,6 +788,18 @@ async ()=>{
 
 
 /* WEBRTC VIDEO CALL */
+
+function endCall(){
+  try{ currentCall?.close(); }catch(e){}
+  try{ dataConnection?.close(); }catch(e){}
+  currentCall=null;
+  dataConnection=null;
+  $("remoteVideo").srcObject=null;
+  showCallInfo("Anruf beendet");
+  setStatus("Bereit");
+}
+
+$("callHangup").onclick=endCall;
 
 function showCallInfo(text){
   $("callInfo").textContent=text;
