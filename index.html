@@ -1277,6 +1277,20 @@ if ("serviceWorker" in navigator) {
 }
 
 
+async function checkMassivHealth(){
+  try{
+    const r=await fetch("/api/health",{cache:"no-store"});
+    const data=await r.json().catch(()=>({}));
+    if(r.ok && data.ok){
+      setStatus("Massiv-KI bereit 🐱",true);
+    }else{
+      setStatus(data.message || "KI nicht verbunden");
+    }
+  }catch(e){
+    setStatus("KI-Server nicht erreichbar");
+  }
+}
+
 /* START */
 
 piano();
