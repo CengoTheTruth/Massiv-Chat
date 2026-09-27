@@ -227,7 +227,14 @@ section h3{
 
 .videos{display:block}
 .video-stage{position:relative;overflow:hidden;min-height:300px;border-radius:18px;background:#090706;border:1px solid var(--line)}
-.massiv-video{width:100%;height:300px;display:block;object-fit:cover;background:#090706}
+.massiv-video{width:100%;height:300px;display:block;object-fit:cover;background:#090706;transition:transform .35s ease,filter .35s ease}
+.massiv-video.massiv-reacting{animation:massivBob 1.25s ease-in-out infinite;filter:saturate(1.08) brightness(1.06)}
+.massiv-video.massiv-speaking{animation:massivSpeak .42s ease-in-out infinite alternate;filter:saturate(1.18) brightness(1.1)}
+@keyframes massivBob{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.018) translateY(-5px)}}
+@keyframes massivSpeak{from{transform:scale(1) translateY(0)}to{transform:scale(1.035) translateY(-3px)}}
+.massiv-state{position:absolute;z-index:4;right:10px;bottom:10px;padding:7px 10px;border-radius:12px;background:rgba(15,10,7,.82);border:1px solid rgba(255,255,255,.12);font-size:11px;backdrop-filter:blur(8px)}
+.massiv-state.speaking{color:#b8efc0}
+.massiv-state.thinking{color:#f2c58e}
 .massiv-placeholder{position:absolute;inset:0;display:flex;align-items:flex-end;padding:14px;background:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,.05) 55%);pointer-events:none}
 .massiv-placeholder img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .massiv-badge{position:relative;z-index:1;display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:13px;background:rgba(15,10,7,.78);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
@@ -307,6 +314,7 @@ section h3{
     <div class="videos">
       <div class="video-stage">
         <img id="massivAvatar" class="massiv-video" src="assets/massiv-avatar.jpg" alt="Massiv">
+        <div id="massivState" class="massiv-state">Bereit 🐱</div>
         <div id="massivPlaceholder" class="massiv-placeholder">
           <div class="massiv-badge">
             <img class="avatar" src="assets/massiv-avatar.jpg" alt="">
@@ -448,11 +456,22 @@ let dataConnection = null;
 /* STATUS */
 
 function setStatus(text,on=false){
-
   status.textContent = text;
-
   dot.classList.toggle("on",on);
-
+  const state=$("massivState");
+  const imgs=[$("massivAvatar"),$("remoteVideo")].filter(Boolean);
+  const lower=String(text).toLowerCase();
+  const speaking=lower.includes("spricht") || lower.includes("antwort");
+  const thinking=lower.includes("denkt") || lower.includes("verbinde");
+  if(state){
+    state.textContent=speaking ? "Massiv spricht 🐱🔊" : thinking ? "Massiv denkt 🐱💭" : "Massiv ist da 🐱";
+    state.classList.toggle("speaking",speaking);
+    state.classList.toggle("thinking",thinking);
+  }
+  imgs.forEach(el=>{
+    el.classList.toggle("massiv-speaking",speaking);
+    el.classList.toggle("massiv-reacting",!speaking && (thinking || on));
+  });
 }
 
 
@@ -1031,6 +1050,7 @@ $("record").onclick = async ()=>{
 
 async function speakText(text){
   if(!text) return;
+  setStatus("Massiv spricht …",true);
   try{
     const r=await fetch("/api/tts",{
       method:"POST",
@@ -1212,6 +1232,13 @@ load();
 setMassivLive(false);
 
 setStatus("Bereit");
+setTimeout(()=>{
+  if(!localStorage.getItem("massiv_intro_seen")){
+    localStorage.setItem("massiv_intro_seen","1");
+    add("Hey ❤️ Ich bin Massiv. Schreib mir einfach – ich bin da und antworte dir.", "massiv");
+    setStatus("Massiv ist da 🐱",true);
+  }
+},350);
 
 </script>
 
