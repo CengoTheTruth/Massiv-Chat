@@ -276,7 +276,7 @@ section h3{
 
 <header>
   <div class="title">Massiv – unser privater Raum</div>
-  <div class="sub">Chat · Stimme · Kamera · Piano</div>
+  <div class="sub">Chat · Stimme · Kamera · Piano · Dateien</div>
 
   <div class="status">
     <span id="dot" class="dot"></span>
@@ -325,7 +325,7 @@ section h3{
     </div>
 
     <p class="small">
-      Kamera und Mikrofon benötigen HTTPS und deine Browser-Freigabe.
+      Kamera, Mikrofon und Sprach-KI benötigen HTTPS und deine Browser-Freigabe. Sprachaufnahmen werden zur Transkription an die KI-Schnittstelle übertragen.
     </p>
 
   </section>
@@ -824,171 +824,85 @@ async ()=>{
 
 /* RECORDING */
 
-$("record").onclick =
-async ()=>{
-
+$("record").onclick = async ()=>{
   try{
+    if(recorder && recorder.state === "recording"){ recorder.stop(); return; }
 
-    if(
-      recorder &&
-      recorder.state === "recording"
-    ){
-
-      recorder.stop();
-
-      return;
-
-    }
-
-
-    const s =
-      await navigator
-        .mediaDevices
-        .getUserMedia({
-          audio:true
-        });
-
-
+    const s = await navigator.mediaDevices.getUserMedia({audio:true});
     chunks = [];
+    recorder = new MediaRecorder(s);
 
-    recorder =
-      new MediaRecorder(s);
+    recorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
 
+    recorder.onstop = async ()=>{
+      s.getTracks().forEach(t=>t.stop());
+      const blob = new Blob(chunks,{type:recorder.mimeType || "audio/webm"});
+      const url = URL.createObjectURL(blob);
 
-    recorder.ondataavailable =
-      e => {
-
-        if(e.data.size){
-
-          chunks.push(e.data);
-
-        }
-
-      };
-
-
-    recorder.onstop = ()=>{
-
-      s.getTracks()
-        .forEach(
-          t => t.stop()
-        );
-
-
-      const blob =
-        new Blob(
-          chunks,
-          {
-            type:
-              recorder.mimeType ||
-              "audio/webm"
-          }
-        );
-
-
-      const url =
-        URL.createObjectURL(blob);
-
-
-      const a =
-        document.createElement("a");
-
-
-      a.href = url;
-
-      a.download =
-        "massiv-aufnahme.webm";
-
-      a.textContent =
-        "▶️ Aufnahme anhören / speichern";
-
-      a.style.display = "block";
-
-      a.style.marginTop = "10px";
-
-      a.style.color =
-        "#e2ad83";
-
-
-      $("previewSection")
-        .classList
-        .remove("hidden");
-
-
+      $("previewSection").classList.remove("hidden");
       $("preview").innerHTML = "";
+      const audio=document.createElement("audio");
+      audio.src=url; audio.controls=true; audio.style.width="100%";
+      $("preview").appendChild(audio);
 
-      $("preview")
-        .appendChild(a);
+      $("record").textContent="🎙️ Aufnahme";
+      setStatus("Audio wird verarbeitet …",true);
 
+      const form=new FormData();
+      form.append("file",blob,"massiv-aufnahme.webm");
 
-      $("record").textContent =
-        "🎙️ Aufnahme";
-
-      setStatus(
-        "Aufnahme fertig"
-      );
-
+      try{
+        const r=await fetch("/api/transcribe",{method:"POST",body:form});
+        const data=await r.json();
+        if(!r.ok) throw new Error(data.error||"Transkription fehlgeschlagen.");
+        if(!data.text) throw new Error("Keine Sprache erkannt.");
+        input.value=data.text;
+        input.dispatchEvent(new Event("input"));
+        await send();
+      }catch(e){
+        setStatus("Aufnahme gespeichert");
+        add("🎙️ Aufnahme erstellt. Sprachverarbeitung: "+e.message,"me");
+      }
     };
 
-
     recorder.start();
-
-    $("record").textContent =
-      "⏹️ Aufnahme stoppen";
-
-    setStatus(
-      "Aufnahme läuft",
-      true
-    );
-
+    $("record").textContent="⏹️ Aufnahme stoppen";
+    setStatus("Aufnahme läuft",true);
+  }catch(e){
+    setStatus("Mikrofon nicht verfügbar");
+    alert("Aufnahme nicht möglich. Bitte Mikrofonfreigabe in Safari prüfen.");
   }
-
-  catch(e){
-
-    alert(
-      "Aufnahme nicht möglich. Bitte Mikrofonfreigabe prüfen."
-    );
-
-  }
-
 };
 
 
 /* TEXT TO SPEECH */
 
-$("speak").onclick = ()=>{
-
-  const last =
-    [
-      ...messages.querySelectorAll(".msg")
-    ]
-    .filter(
-      x => x.classList.contains("massiv")
-    )
-    .pop();
-
-
+$("speak").onclick = async ()=>{
+  const last=[...messages.querySelectorAll(".msg")]
+    .filter(x=>x.classList.contains("massiv")).pop();
   if(!last) return;
 
+  const copy=last.cloneNode(true);
+  copy.querySelector(".time")?.remove();
+  const text=copy.textContent.trim();
+  if(!text) return;
 
-  const copy =
-    last.cloneNode(true);
-
-
-  copy
-    .querySelector(".time")
-    ?.remove();
-
-
-  speechSynthesis.cancel();
-
-
-  speechSynthesis.speak(
-    new SpeechSynthesisUtterance(
-      copy.textContent
-    )
-  );
-
+  setStatus("Massiv spricht …",true);
+  try{
+    const r=await fetch("/api/tts",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text})
+    });
+    if(!r.ok) throw new Error("TTS nicht verfügbar");
+    const audio=new Audio(URL.createObjectURL(await r.blob()));
+    audio.onended=()=>setStatus("KI verbunden",true);
+    await audio.play();
+  }catch(e){
+    speechSynthesis.cancel();
+    speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    setStatus("Vorlesen über Safari",true);
+  }
 };
 
 
