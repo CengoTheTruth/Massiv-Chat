@@ -809,10 +809,14 @@ function attachIncomingCall(){
       call.on("close",()=>{
         $("remoteVideo").srcObject=null;
         currentCall=null;
+        setMassivLive(false);
         setStatus("Bereit");
         showCallInfo("Anruf beendet");
       });
       call.on("error",()=>{
+        $("remoteVideo").srcObject=null;
+        currentCall=null;
+        setMassivLive(false);
         setStatus("Anruffehler");
         showCallInfo("Anruf konnte nicht aufgebaut werden.");
       });
@@ -875,10 +879,14 @@ $("callJoin").onclick=async()=>{
     call.on("close",()=>{
       $("remoteVideo").srcObject=null;
       currentCall=null;
+      setMassivLive(false);
       setStatus("Bereit");
       showCallInfo("Anruf beendet");
     });
     call.on("error",()=>{
+      $("remoteVideo").srcObject=null;
+      currentCall=null;
+      setMassivLive(false);
       setStatus("Anruffehler");
       showCallInfo("Verbindung fehlgeschlagen.");
     });
