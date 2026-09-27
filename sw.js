@@ -1,4 +1,4 @@
-const CACHE="massiv-v6";
+const CACHE="massiv-v7";
 const APP=["./","./index.html","./manifest.json"];
 
 self.addEventListener("install",event=>{
