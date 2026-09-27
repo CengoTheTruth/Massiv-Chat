@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Massiv">
 <link rel="manifest" href="/manifest.json">
 <title>Massiv – unser privater Raum</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
 <style>
 :root{
@@ -328,6 +329,13 @@ section h3{
 
     </div>
 
+    <div class="grid" style="margin-top:8px">
+      <button class="tool" id="callCreate">📞 Raum erstellen</button>
+      <button class="tool" id="callJoin">🔗 Raum beitreten</button>
+    </div>
+
+    <div id="callInfo" class="small" style="margin-top:8px"></div>
+
     <p class="small">
       Kamera, Mikrofon und Sprach-KI benötigen HTTPS und deine Browser-Freigabe. Sprachaufnahmen werden zur Transkription an die KI-Schnittstelle übertragen.
     </p>
@@ -429,6 +437,9 @@ let mediaStream = null;
 let recorder = null;
 let chunks = [];
 let audioCtx = null;
+let peer = null;
+let currentCall = null;
+let callReady = false;
 
 
 /* STATUS */
@@ -773,6 +784,109 @@ async ()=>{
 
 };
 
+
+/* WEBRTC VIDEO CALL */
+
+function showCallInfo(text){
+  $("callInfo").textContent=text;
+}
+
+async function ensureCallStream(){
+  if(mediaStream) return mediaStream;
+  mediaStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+  $("localVideo").srcObject=mediaStream;
+  $("camBtn").textContent="⏹️ Kamera stoppen";
+  $("micBtn").textContent="🔇 Mikro aus";
+  return mediaStream;
+}
+
+function attachIncomingCall(){
+  if(!peer) return;
+  peer.on("call", async call=>{
+    try{
+      const stream=await ensureCallStream();
+      currentCall=call;
+      call.answer(stream);
+      call.on("stream", remote=>{
+        $("remoteVideo").srcObject=remote;
+        setStatus("Videoanruf verbunden",true);
+        showCallInfo("📞 Verbunden");
+      });
+      call.on("close",()=>{
+        $("remoteVideo").srcObject=null;
+        currentCall=null;
+        setStatus("Bereit");
+        showCallInfo("Anruf beendet");
+      });
+      call.on("error",()=>{
+        setStatus("Anruffehler");
+        showCallInfo("Anruf konnte nicht aufgebaut werden.");
+      });
+    }catch(e){
+      call.close();
+      showCallInfo("Kamera/Mikrofon wurde nicht freigegeben.");
+    }
+  });
+}
+
+function makePeer(id){
+  return new Promise((resolve,reject)=>{
+    peer=new Peer(id||undefined);
+    peer.on("open",id=>{
+      callReady=true;
+      attachIncomingCall();
+      resolve(id);
+    });
+    peer.on("error",e=>{
+      callReady=false;
+      reject(e);
+    });
+  });
+}
+
+$("callCreate").onclick=async()=>{
+  try{
+    await ensureCallStream();
+    if(peer && callReady) return showCallInfo("Deine Raum-ID: "+peer.id+" — diese ID an Massiv senden.");
+    const id=await makePeer();
+    showCallInfo("Deine Raum-ID: "+id+" — diese ID an die andere Person senden.");
+    setStatus("Raum bereit",true);
+  }catch(e){
+    showCallInfo("Raum konnte nicht erstellt werden.");
+    setStatus("Anruf nicht verfügbar");
+  }
+};
+
+$("callJoin").onclick=async()=>{
+  const partner=prompt("Raum-ID der anderen Person:");
+  if(!partner) return;
+  try{
+    await ensureCallStream();
+    if(!peer || !callReady) await makePeer();
+    const call=peer.call(partner,mediaStream);
+    currentCall=call;
+    showCallInfo("📞 Verbinde mit "+partner+" …");
+    setStatus("Verbinde …",true);
+    call.on("stream",remote=>{
+      $("remoteVideo").srcObject=remote;
+      setStatus("Videoanruf verbunden",true);
+      showCallInfo("📞 Verbunden");
+    });
+    call.on("close",()=>{
+      $("remoteVideo").srcObject=null;
+      currentCall=null;
+      setStatus("Bereit");
+      showCallInfo("Anruf beendet");
+    });
+    call.on("error",()=>{
+      setStatus("Anruffehler");
+      showCallInfo("Verbindung fehlgeschlagen.");
+    });
+  }catch(e){
+    showCallInfo("Verbindung konnte nicht hergestellt werden.");
+    setStatus("Anruf nicht verfügbar");
+  }
+};
 
 /* MICROPHONE */
 
