@@ -551,8 +551,10 @@ async function send(){
     const data=await response.json();
     waiting.remove();
     if(!response.ok) throw new Error(data.error||"KI-Schnittstelle nicht erreichbar.");
-    add(data.text||"Ich habe gerade keine Antwort erhalten.","massiv");
-    setStatus("KI verbunden",true);
+    const answer=data.text||"Ich habe gerade keine Antwort erhalten.";
+    add(answer,"massiv");
+    setStatus("Massiv spricht …",true);
+    await speakText(answer);
   }catch(e){
     waiting.remove();
     add("⚠️ "+e.message,"massiv");
@@ -884,6 +886,30 @@ $("record").onclick = async ()=>{
 
 
 /* TEXT TO SPEECH */
+
+async function speakText(text){
+  if(!text) return;
+  try{
+    const r=await fetch("/api/tts",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text})
+    });
+    if(!r.ok) throw new Error("TTS nicht verfügbar");
+    const audio=new Audio(URL.createObjectURL(await r.blob()));
+    audio.onended=()=>setStatus("KI verbunden",true);
+    await audio.play();
+  }catch(e){
+    if("speechSynthesis" in window){
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang="de-DE";
+      u.onend=()=>setStatus("KI verbunden",true);
+      speechSynthesis.speak(u);
+    }
+  }
+}
+
 
 $("speak").onclick = async ()=>{
   const last=[...messages.querySelectorAll(".msg")]
