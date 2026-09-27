@@ -532,12 +532,16 @@ async function send(){
   add(text,"me");
   input.value="";
   input.style.height="44px";
-  setStatus("Massiv denkt …",true);
-  const waiting=add("…","massiv");
+
+  // Build the conversation BEFORE adding the temporary "thinking" bubble,
+  // so that placeholder text is never sent to the AI.
   const history=[...messages.querySelectorAll(".msg")].map(el=>({
     role:el.classList.contains("me")?"user":"assistant",
     content:(el.childNodes[0]?.textContent||"").slice(0,12000)
   })).filter(x=>x.content);
+
+  setStatus("Massiv denkt …",true);
+  const waiting=add("…","massiv");
   try{
     const response=await fetch("/api/chat",{
       method:"POST",
