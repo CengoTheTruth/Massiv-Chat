@@ -439,7 +439,17 @@ section h3{
 /* Ensure Massiv's portrait is visible even when a cached deployment is still settling. */
 document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll('img[src*="massiv-avatar.jpg"]').forEach(img=>{
-    img.onerror=()=>{ img.style.display="none"; };
+    img.dataset.fallbackTried="0";
+    img.onerror=()=>{
+      if(img.dataset.fallbackTried==="0"){
+        img.dataset.fallbackTried="1";
+        img.src="https://raw.githubusercontent.com/CengoTheTruth/Massiv-Chat/main/assets/massiv-avatar.jpg";
+      }else{
+        img.removeAttribute("src");
+        img.alt="Massiv 🐱";
+        img.style.background="#241913";
+      }
+    };
   });
 });
 
@@ -459,6 +469,28 @@ let currentCall = null;
 let callReady = false;
 let dataConnection = null;
 
+
+function reactMassiv(kind="normal"){
+  const avatar=$("massivAvatar");
+  const state=$("massivState");
+  if(!avatar || !state) return;
+  avatar.classList.remove("massiv-speaking","massiv-reacting");
+  void avatar.offsetWidth;
+  if(kind==="speaking"){
+    avatar.classList.add("massiv-speaking");
+    state.textContent="Massiv reagiert 🐱🔊";
+  }else if(kind==="piano"){
+    avatar.classList.add("massiv-reacting");
+    state.textContent="Massiv hört dein Piano 🐱🎹";
+    clearTimeout(window._massivReactionTimer);
+    window._massivReactionTimer=setTimeout(()=>setStatus("Massiv ist da 🐱",true),900);
+  }else if(kind==="thinking"){
+    avatar.classList.add("massiv-reacting");
+    state.textContent="Massiv denkt 🐱💭";
+  }else{
+    state.textContent="Massiv ist da 🐱";
+  }
+}
 
 /* STATUS */
 
@@ -590,9 +622,10 @@ async function send(){
     });
     const data=await response.json();
     waiting.remove();
-    if(!response.ok) throw new Error(data.error||"KI-Schnittstelle nicht erreichbar.");
+    if(!response.ok) throw new Error(data.error||("KI-Schnittstelle antwortet mit HTTP "+response.status+"."));
     const answer=data.text||"Ich habe gerade keine Antwort erhalten.";
     add(answer,"massiv");
+    reactMassiv("speaking");
     setStatus("Massiv spricht …",true);
     await speakText(answer);
   }catch(e){
@@ -1111,6 +1144,8 @@ $("speak").onclick = async ()=>{
 
 /* PIANO */
 
+let lastPianoTrigger=0;
+
 function piano(){
 
   const notes = [
@@ -1147,8 +1182,16 @@ function piano(){
 
       b.textContent = name;
 
-      b.onpointerdown =
-        () => play(notes[i]);
+      const trigger=()=>{
+        const now=Date.now();
+        if(now-lastPianoTrigger<120) return;
+        lastPianoTrigger=now;
+        play(notes[i],true);
+        reactMassiv("piano");
+        setStatus("Massiv hört dein Piano 🎹",true);
+      };
+      b.onpointerdown=trigger;
+      b.onclick=trigger;
 
 
       $("piano")
@@ -1238,7 +1281,8 @@ piano();
 load();
 setMassivLive(false);
 
-setStatus("Bereit");
+setStatus("Massiv ist da 🐱",true);
+reactMassiv("normal");
 setTimeout(()=>{
   if(!localStorage.getItem("massiv_intro_seen")){
     localStorage.setItem("massiv_intro_seen","1");
