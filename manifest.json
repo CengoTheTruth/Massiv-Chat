@@ -1,0 +1,10 @@
+{
+  "name":"Massiv – unser privater Raum",
+  "short_name":"Massiv",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#100b08",
+  "theme_color":"#160f0b",
+  "description":"Privater Chat mit Massiv, Stimme, Kamera und Piano.",
+  "lang":"de"
+}
