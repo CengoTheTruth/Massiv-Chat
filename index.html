@@ -806,7 +806,10 @@ function showCallInfo(text){
 }
 
 async function ensureCallStream(){
-  if(mediaStream) return mediaStream;
+  const hasVideo=mediaStream?.getVideoTracks().some(t=>t.readyState==="live");
+  const hasAudio=mediaStream?.getAudioTracks().some(t=>t.readyState==="live");
+  if(hasVideo && hasAudio) return mediaStream;
+  try{ mediaStream?.getTracks().forEach(t=>t.stop()); }catch(e){}
   mediaStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
   $("localVideo").srcObject=mediaStream;
   $("camBtn").textContent="⏹️ Kamera stoppen";
@@ -816,15 +819,19 @@ async function ensureCallStream(){
 
 function attachIncomingCall(){
   if(!peer) return;
-  peer.on("connection", conn=>{ dataConnection=conn; conn.on("open",()=>showCallInfo("📞 Verbunden · Piano live")); });
+  peer.on("connection", conn=>{
+    dataConnection=conn;
+    conn.on("open",()=>showCallInfo("📞 Verbunden · Piano live"));
+    conn.on("data",data=>{
+      if(data && data.type==="piano" && typeof data.freq==="number") play(data.freq,false);
+    });
+    conn.on("close",()=>{ if(dataConnection===conn) dataConnection=null; });
+  });
   peer.on("call", async call=>{
     try{
       const stream=await ensureCallStream();
       currentCall=call;
       call.answer(stream);
-      call.on("data", data=>{
-        if(data && data.type==="piano" && typeof data.freq==="number") play(data.freq,false);
-      });
       call.on("stream", remote=>{
         $("remoteVideo").srcObject=remote;
         setStatus("Videoanruf verbunden",true);
@@ -883,11 +890,11 @@ $("callJoin").onclick=async()=>{
     if(!peer || !callReady) await makePeer();
     dataConnection=peer.connect(partner);
     dataConnection.on("open",()=>showCallInfo("📞 Verbunden · Piano live"));
-    const call=peer.call(partner,mediaStream);
-    currentCall=call;
-    call.on("data", data=>{
+    dataConnection.on("data",data=>{
       if(data && data.type==="piano" && typeof data.freq==="number") play(data.freq,false);
     });
+    const call=peer.call(partner,mediaStream);
+    currentCall=call;
     showCallInfo("📞 Verbinde mit "+partner+" …");
     setStatus("Verbinde …",true);
     call.on("stream",remote=>{
