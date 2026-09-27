@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Massiv">
 <link rel="manifest" href="manifest.json">
-<title>Massiv – unser privater Raum · v7</title>
+<title>Massiv – unser privater Raum · v8</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
 <style>
@@ -313,11 +313,11 @@ section h3{
 
     <div class="videos">
       <div class="video-stage">
-        <img id="massivAvatar" class="massiv-video" src="https://raw.githubusercontent.com/CengoTheTruth/Massiv-Chat/main/assets/massiv-avatar.jpg" alt="Massiv">
+        <img id="massivAvatar" class="massiv-video" src="/assets/massiv-avatar.jpg?v=8" alt="Massiv">
         <div id="massivState" class="massiv-state">Bereit 🐱</div>
         <div id="massivPlaceholder" class="massiv-placeholder">
           <div class="massiv-badge">
-            <img class="avatar" src="https://raw.githubusercontent.com/CengoTheTruth/Massiv-Chat/main/assets/massiv-avatar.jpg" alt="">
+            <img class="avatar" src="/assets/massiv-avatar.jpg?v=8" alt="">
             <div><div class="massiv-name">Massiv 🐱</div><div class="massiv-live">Bereit für deinen Videochat</div></div>
           </div>
         </div>
@@ -443,7 +443,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     img.onerror=()=>{
       if(img.dataset.fallbackTried==="0"){
         img.dataset.fallbackTried="1";
-        img.src="https://raw.githubusercontent.com/CengoTheTruth/Massiv-Chat/main/assets/massiv-avatar.jpg";
+        img.src="/assets/massiv-avatar.jpg?v=8";
       }else{
         img.removeAttribute("src");
         img.alt="Massiv 🐱";
@@ -827,6 +827,9 @@ function showCallInfo(text){
   $("callInfo").textContent=text;
 }
 function setMassivLive(live){
+  const state=$("massivState");
+  if(state) state.textContent=live ? "Massiv ist live 🐱🎥" : "Massiv ist da 🐱";
+
   $("massivPlaceholder").classList.toggle("hidden",live);
   $("massivAvatar").classList.toggle("hidden",live);
   $("remoteVideo").classList.toggle("hidden",!live);
@@ -1269,7 +1272,7 @@ function play(freq, broadcast=true){
 /* PWA */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    navigator.serviceWorker.register("./sw.js?v=8").catch(() => {});
   });
 }
 
