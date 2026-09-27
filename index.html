@@ -720,70 +720,31 @@ $("file").onchange = ()=>{
 
 /* CAMERA */
 
-$("camBtn").onclick =
-async ()=>{
-
+$("camBtn").onclick = async ()=>{
   try{
-
-    if(mediaStream){
-
-      mediaStream
-        .getVideoTracks()
-        .forEach(
-          t => t.stop()
-        );
-
-      mediaStream = null;
-
+    if(mediaStream && mediaStream.getVideoTracks().some(t=>t.readyState==="live")){
+      mediaStream.getVideoTracks().forEach(t=>t.stop());
       $("localVideo").srcObject = null;
-
-      $("camBtn").textContent =
-        "📷 Kamera starten";
-
-      setStatus("Bereit");
-
+      $("camBtn").textContent = "📷 Kamera starten";
+      setStatus("Kamera aus");
       return;
-
     }
 
+    if(mediaStream && mediaStream.getAudioTracks().some(t=>t.readyState==="live")){
+      const video = await navigator.mediaDevices.getUserMedia({video:true});
+      video.getVideoTracks().forEach(t=>mediaStream.addTrack(t));
+    }else{
+      mediaStream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    }
 
-    mediaStream =
-      await navigator
-        .mediaDevices
-        .getUserMedia({
-          video:true,
-          audio:true
-        });
-
-
-    $("localVideo").srcObject =
-      mediaStream;
-
-    $("camBtn").textContent =
-      "⏹️ Kamera stoppen";
-
-    $("micBtn").textContent =
-      "🔇 Mikro aus";
-
-    setStatus(
-      "Kamera aktiv",
-      true
-    );
-
+    $("localVideo").srcObject = mediaStream;
+    $("camBtn").textContent = "⏹️ Kamera stoppen";
+    $("micBtn").textContent = mediaStream.getAudioTracks()[0]?.enabled === false ? "🎙️ Mikro an" : "🔇 Mikro aus";
+    setStatus("Kamera aktiv",true);
+  }catch(e){
+    setStatus("Kamera konnte nicht gestartet werden");
+    alert("Bitte Kamera/Mikrofon in Safari erlauben und HTTPS verwenden.");
   }
-
-  catch(e){
-
-    setStatus(
-      "Kamera konnte nicht gestartet werden"
-    );
-
-    alert(
-      "Bitte Kamera/Mikrofon in Safari erlauben und HTTPS verwenden."
-    );
-
-  }
-
 };
 
 
@@ -980,30 +941,50 @@ async ()=>{
 
 $("record").onclick = async ()=>{
   try{
-    if(recorder && recorder.state === "recording"){ recorder.stop(); return; }
+    if(recorder && recorder.state === "recording"){
+      recorder.stop();
+      return;
+    }
 
-    const s = await navigator.mediaDevices.getUserMedia({audio:true});
+    let recordStream = mediaStream;
+    if(!recordStream || !recordStream.getAudioTracks().some(t=>t.readyState==="live")){
+      recordStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    }
+
+    const mimeCandidates = [
+      "audio/mp4",
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/ogg;codecs=opus"
+    ];
+    const mimeType = mimeCandidates.find(t => MediaRecorder.isTypeSupported?.(t)) || "";
+    recorder = mimeType ? new MediaRecorder(recordStream,{mimeType}) : new MediaRecorder(recordStream);
+    const recordingStream = recordStream;
     chunks = [];
-    recorder = new MediaRecorder(s);
 
-    recorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+    recorder.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
 
     recorder.onstop = async ()=>{
-      s.getTracks().forEach(t=>t.stop());
-      const blob = new Blob(chunks,{type:recorder.mimeType || "audio/webm"});
+      if(recordingStream !== mediaStream){
+        recordingStream.getTracks().forEach(t=>t.stop());
+      }
+      const blob = new Blob(chunks,{type:recorder.mimeType || "audio/mp4"});
       const url = URL.createObjectURL(blob);
 
       $("previewSection").classList.remove("hidden");
       $("preview").innerHTML = "";
       const audio=document.createElement("audio");
-      audio.src=url; audio.controls=true; audio.style.width="100%";
+      audio.src=url;
+      audio.controls=true;
+      audio.style.width="100%";
       $("preview").appendChild(audio);
 
       $("record").textContent="🎙️ Aufnahme";
       setStatus("Audio wird verarbeitet …",true);
 
+      const extension = (blob.type || "").includes("mp4") ? "m4a" : "webm";
       const form=new FormData();
-      form.append("file",blob,"massiv-aufnahme.webm");
+      form.append("file",blob,"massiv-aufnahme."+extension);
 
       try{
         const r=await fetch("/api/transcribe",{method:"POST",body:form});
