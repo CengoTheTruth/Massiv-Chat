@@ -440,6 +440,7 @@ let audioCtx = null;
 let peer = null;
 let currentCall = null;
 let callReady = false;
+let dataConnection = null;
 
 
 /* STATUS */
@@ -802,11 +803,15 @@ async function ensureCallStream(){
 
 function attachIncomingCall(){
   if(!peer) return;
+  peer.on("connection", conn=>{ dataConnection=conn; conn.on("open",()=>showCallInfo("📞 Verbunden · Piano live")); });
   peer.on("call", async call=>{
     try{
       const stream=await ensureCallStream();
       currentCall=call;
       call.answer(stream);
+      call.on("data", data=>{
+        if(data && data.type==="piano" && typeof data.freq==="number") play(data.freq,false);
+      });
       call.on("stream", remote=>{
         $("remoteVideo").srcObject=remote;
         setStatus("Videoanruf verbunden",true);
@@ -863,8 +868,13 @@ $("callJoin").onclick=async()=>{
   try{
     await ensureCallStream();
     if(!peer || !callReady) await makePeer();
+    dataConnection=peer.connect(partner);
+    dataConnection.on("open",()=>showCallInfo("📞 Verbunden · Piano live"));
     const call=peer.call(partner,mediaStream);
     currentCall=call;
+    call.on("data", data=>{
+      if(data && data.type==="piano" && typeof data.freq==="number") play(data.freq,false);
+    });
     showCallInfo("📞 Verbinde mit "+partner+" …");
     setStatus("Verbinde …",true);
     call.on("stream",remote=>{
@@ -1107,7 +1117,10 @@ function piano(){
 
 /* PLAY PIANO */
 
-function play(freq){
+function play(freq, broadcast=true){
+  if(broadcast && dataConnection && dataConnection.open){
+    try{ dataConnection.send({type:"piano",freq}); }catch(e){}
+  }
 
   audioCtx ||=
     new (
