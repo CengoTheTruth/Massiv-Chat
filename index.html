@@ -544,8 +544,20 @@ function save(){
 
 /* ADD MESSAGE */
 
+function preservePageScroll(fn){
+  const x=window.scrollX;
+  const y=window.scrollY;
+  fn();
+  requestAnimationFrame(()=>{
+    window.scrollTo(x,y);
+    requestAnimationFrame(()=>window.scrollTo(x,y));
+  });
+}
+
 function add(text,who="massiv"){
 
+  const scrollX=window.scrollX;
+  const scrollY=window.scrollY;
   const el = document.createElement("div");
 
   el.className = "msg " + who;
@@ -562,7 +574,9 @@ function add(text,who="massiv"){
 
   messages.appendChild(el);
 
-  messages.scrollTop = messages.scrollHeight;
+  // Do not move the whole page when a message/game status is added.
+  window.scrollTo(scrollX,scrollY);
+  requestAnimationFrame(()=>window.scrollTo(scrollX,scrollY));
 
   save();
   return el;
@@ -597,7 +611,7 @@ function load(){
 
 
 async function fileToDataURL(file){return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);});}
-function addImageMessage(src,who="me",caption="📷 Bild"){const el=document.createElement("div");el.className="msg "+who;const im=document.createElement("img");im.src=src;im.className="media";im.style.maxWidth="100%";im.style.borderRadius="14px";el.appendChild(im);if(caption){const tm=document.createElement("span");tm.className="time";tm.textContent=caption+" · "+time();el.appendChild(tm);}messages.appendChild(el);messages.scrollTop=messages.scrollHeight;save();return el;}
+function addImageMessage(src,who="me",caption="📷 Bild"){const scrollX=window.scrollX,scrollY=window.scrollY;const el=document.createElement("div");el.className="msg "+who;const im=document.createElement("img");im.src=src;im.className="media";im.style.maxWidth="100%";im.style.borderRadius="14px";el.appendChild(im);if(caption){const tm=document.createElement("span");tm.className="time";tm.textContent=caption+" · "+time();el.appendChild(tm);}messages.appendChild(el);window.scrollTo(scrollX,scrollY);requestAnimationFrame(()=>window.scrollTo(scrollX,scrollY));save();return el;}
 
 /* SEND */
 
