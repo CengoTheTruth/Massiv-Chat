@@ -3,6 +3,22 @@ export default async function handler(req, res) {
 
   try {
     const { messages = [] } = req.body || {};
+    const cleanMessages = Array.isArray(messages) ? messages.slice(-30).map(m => {
+      if (!m || !m.role) return null;
+      if (Array.isArray(m.content)) {
+        const content = m.content.filter(part =>
+          part && (part.type === "text" || part.type === "image_url")
+        ).map(part => {
+          if (part.type === "text") return {type:"text", text:String(part.text).slice(0,12000)};
+          const url = part.image_url?.url;
+          return url && String(url).startsWith("data:image/")
+            ? {type:"image_url", image_url:{url}}
+            : null;
+        }).filter(Boolean);
+        return content.length ? {role:m.role==="assistant"?"assistant":"user",content} : null;
+      }
+      return {role:m.role==="assistant"?"assistant":"user",content:String(m.content||"").slice(0,12000)};
+    }).filter(Boolean) : [];
     const auth = process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN;
     if (!auth) {
       return res.status(503).json({
@@ -14,9 +30,9 @@ export default async function handler(req, res) {
 
     const body = {
       model: "anthropic/claude-opus-5",
-      messages: [{ role: "system", content: system }, ...messages.slice(-30)],
-      temperature: 0.85,
-      max_tokens: 700
+      messages: [{ role: "system", content: system }, ...cleanMessages],
+      temperature: 0.78,
+      max_tokens: 900
     };
 
     const r = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
