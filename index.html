@@ -281,6 +281,18 @@ section h3{
   color:var(--muted);
   line-height:1.4
 }
+.duration{margin-left:auto;font-variant-numeric:tabular-nums;color:#e8c2a8}
+.games{display:grid;gap:12px}
+.cups{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:end;min-height:180px}
+.cup{height:125px;border-radius:10px 10px 24px 24px;background:linear-gradient(180deg,#c82a32,#741217);border:2px solid #ed6269;color:#fff;font-size:28px;font-weight:900;position:relative;touch-action:manipulation}
+.cup:active{transform:translateY(-3px)}
+.cup.lift{transform:translateY(-35px)}
+.cup .cat{position:absolute;left:50%;bottom:-35px;transform:translateX(-50%);font-size:42px;display:none}
+.cup.reveal .cat{display:block}
+.game-status{min-height:22px;text-align:center;font-size:13px;color:var(--muted)}
+.game-buttons{display:flex;gap:8px}
+.game-buttons button{flex:1}
+.game-note{font-size:11px;color:var(--muted);text-align:center}
 
 .filepick{
   display:none
@@ -299,6 +311,7 @@ section h3{
   <div class="status">
     <span id="dot" class="dot"></span>
     <span id="status">Bereit</span>
+    <span id="duration" class="duration">Gesprächsdauer 00:00</span>
   </div>
 </header>
 
@@ -366,6 +379,25 @@ section h3{
 
   </section>
 
+
+  <!-- GAMES -->
+  <section id="gamesSection">
+    <h3>🎮 Spiele mit Massiv</h3>
+    <div class="games">
+      <div class="small">Hütchenspiel: Massiv versteckt sich unter einem Becher. Merk dir gut, wo er hinwandert. 😼</div>
+      <div id="cups" class="cups">
+        <button class="cup" data-cup="0">🥤<span class="cat">🐱</span></button>
+        <button class="cup" data-cup="1">🥤<span class="cat">🐱</span></button>
+        <button class="cup" data-cup="2">🥤<span class="cat">🐱</span></button>
+      </div>
+      <div id="gameStatus" class="game-status">Massiv wartet auf deinen Tipp.</div>
+      <div class="game-buttons">
+        <button class="tool" id="newGame">🎲 Neue Runde</button>
+        <button class="tool" id="massivChallenge">😼 Massiv herausfordern</button>
+      </div>
+      <div class="game-note">Die Seite bleibt beim Spielen an ihrer Position – kein automatisches Herunterspringen.</div>
+    </div>
+  </section>
 
   <!-- FILE PREVIEW -->
   <section id="previewSection" class="hidden">
@@ -469,6 +501,23 @@ let peer = null;
 let currentCall = null;
 let callReady = false;
 let dataConnection = null;
+let pendingImage = null;
+let gameTarget = 0;
+let gameBusy = false;
+let togetherStarted = Number(localStorage.getItem("massiv_together_started") || 0) || Date.now();
+localStorage.setItem("massiv_together_started", String(togetherStarted));
+
+function formatDuration(ms){
+  const total=Math.max(0,Math.floor(ms/1000));
+  const h=Math.floor(total/3600), m=Math.floor(total%3600/60), sec=total%60;
+  return h ? String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0")
+           : String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+}
+function updateDuration(){
+  const el=$("duration");
+  if(el) el.textContent="Gesprächsdauer "+formatDuration(Date.now()-togetherStarted);
+}
+setInterval(updateDuration,1000); updateDuration();
 
 
 function reactMassiv(kind="normal"){
@@ -617,17 +666,65 @@ function addImageMessage(src,who="me",caption="📷 Bild"){const scrollX=window.
 
 async function send(){
   const text=input.value.trim();
-  const f=$("file").files[0];
-  if(!text && !f) return;
+  if(!text && !pendingImage) return;
   document.querySelector(".empty")?.remove();
-  let imageData=null;
-  if(f && f.type.startsWith("image/")){imageData=await fileToDataURL(f);addImageMessage(imageData,"me",f.name);}
-  else if(f){add("📎 "+f.name,"me");}
+
+  const imageForMessage=pendingImage;
   if(text) add(text,"me");
-  input.value="";input.style.height="44px";$("file").value="";
-  const history=[...messages.querySelectorAll(".msg")].map(el=>{const img=el.querySelector("img.media");return {role:el.classList.contains("me")?"user":"assistant",content:img?[{type:"text",text:el.childNodes.length>1?el.childNodes[1]?.textContent||"Bild": "Bild"},{type:"image_url",image_url:{url:img.src}}]:(el.childNodes[0]?.textContent||"").slice(0,12000)}}).filter(x=>x.content);
-  if(imageData && text){history[history.length-1].content=[{type:"text",text},{type:"image_url",image_url:{url:imageData}}];}
-  setStatus("Massiv denkt …",true);const waiting=add("…","massiv");
-  try{const response=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:history})});const data=await response.json();waiting.remove();if(!response.ok)throw new Error(data.error||("KI-Schnittstelle antwortet mit HTTP "+response.status+"."));const answer=data.text||data.reply||"MIAU 🐱";add(answer,"massiv");reactMassiv("speaking");setStatus("Massiv spricht …",true);await speakText(answer);}catch(e){waiting.remove();add("⚠️ "+e.message,"massiv");setStatus("KI nicht verbunden");}
-}
-$("file").onchange=()=>{const f=$("file").files[0];if(!f)return;$("previewSection").classList.remove("hidden");const p=$("preview");p.innerHTML="";const url=URL.createObjectURL(f);if(f.type.startsWith("image/")){const im=document.createElement("img");im.src=url;im.className="media";p.appendChild(im);}else if(f.type.startsWith("video/")){const v=document.createElement("video");v.src=url;v.controls=true;v.className="media";p.appendChild(v);}else if(f.type.startsWith("audio/")){const a=document.createElement("audio");a.src=url;a.controls=true;a.style.width="100%";p.appendChild(a);}else p.textContent=f.name;};
+  if(imageForMessage) addImageMessage(imageForMessage,"me");
+  input.value="";
+  input.style.height="44px";
+  pendingImage=null;
+  $("previewSection").classList.add("hidden");
+
+  const history=[...messages.querySelectorAll(".msg")].map(el=>{
+    const textNode=(el.childNodes[0]?.textContent||"").slice(0,12000);
+    const img=el.querySelector("img.chat-image");
+    if(img){
+      return {role:el.classList.contains("me")?"user":"assistant",
+        content:[...(textNode?[{type:"text",text:textNode}]:[]),{type:"image_url",image_url:{url:img.src}}]};
+    }
+    return {role:el.classList.contains("me")?"user":"assistant",content:textNode};
+  }).filter(x=>x.content && (typeof x.content==="string"?x.content:x.content.length));
+
+  setStatus("Massiv denkt …",true);
+  const waiting=add("…","massiv");
+  try{
+    const response=await fetch("/api/chat",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({messages:history})
+    });
+    const data=await response.json();
+    waiting.remove();
+    if(!response.ok) throw new Error(data.error||("KI-Schnittstelle antwortet mit HTTP "+response.status+"."));
+    const answer=data.text||"MIAU … ich habe gerade keine Antwort erhalten.";
+    add(answer,"massiv");
+    reactMassiv("speaking");
+    setStatus("Massiv spricht …",true);
+    await speakText(answer);
+  }catch(e){
+    waiting.remove();
+    add("⚠️ "+e.message,"massiv");
+    setStatus("KI nicht verbunden");
+  }
+}$("file").onchange = ()=>{
+  const f=$("file").files[0]; if(!f) return;
+  $("previewSection").classList.remove("hidden");
+  const p=$("preview"); p.innerHTML="";
+  const url=URL.createObjectURL(f);
+
+  if(f.type.startsWith("image/")){
+    const im=document.createElement("img");
+    im.src=url; im.className="media";
+    p.appendChild(im);
+    const reader=new FileReader();
+    reader.onload=()=>{pendingImage=reader.result;};
+    reader.readAsDataURL(f);
+    p.insertAdjacentHTML("beforeend",'<div class="small" style="margin-top:7px">🖼️ Bild ist für Massiv bereit. Tippe jetzt auf ➤ – Massiv kann es direkt sehen und darüber sprechen.</div>');
+  }else if(f.type.startsWith("video/")){
+    const v=document.createElement("video"); v.src=url; v.controls=true; v.className="media"; p.appendChild(v);
+    p.insertAdjacentHTML("beforeend",'<div class="small" style="margin-top:7px">Video ausgewählt. Für echte Bildanalyse bitte ein Bild senden.</div>');
+  }else if(f.type.startsWith("audio/")){
+    const a=document.createElement("audio"); a.src=url; a.controls=true; a.style.width="100%"; p.appendChild(a);
+  }else p.textContent=f.name;
+};
