@@ -32,7 +32,8 @@ export default async function handler(req, res) {
     if (!r.ok) return res.status(r.status).json({ error: data?.error?.message || "KI-Anfrage fehlgeschlagen" });
 
     return res.status(200).json({
-      reply: data?.choices?.[0]?.message?.content || "MIAU … ich habe gerade den Faden verloren. Sag das bitte noch einmal."
+      text: data?.choices?.[0]?.message?.content || "MIAU … ich habe gerade den Faden verloren. Sag das bitte noch einmal.",
+      reply: data?.choices?.[0]?.message?.content || "MIAU …"
     });
   } catch (e) {
     return res.status(500).json({ error: "Verbindung zu Massiv konnte nicht hergestellt werden." });
